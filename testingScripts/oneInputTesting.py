@@ -5,7 +5,7 @@ import numpy as np
 import necessaryScripts
 import cv2
 
-model = load_model("../models/pre_trained271023_2")
+model = load_model("../models/1")
 class_names = ["Down Syndrome", "Normal"]
 
 def preprocess_image(image_path):

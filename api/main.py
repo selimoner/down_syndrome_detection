@@ -8,7 +8,8 @@ import necessaryScripts
 
 app = FastAPI()
 
-model = tf.keras.models.load_model("../saved_models/pre_trained271023_2")
+model = tf.keras.models.load_model("../saved_models/5")
+
 class_names = ["Down Syndrome", "Normal"]
 
 def read_file_as_image(data) -> np.ndarray:

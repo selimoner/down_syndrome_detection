@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import layers, models
-from tensorflow.keras.layers import Conv2d, MaxPooling2d, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.applications import VGG16
 import matplotlib
 matplotlib.use('TkAgg')
@@ -13,7 +13,7 @@ import necessaryScripts
 IMAGE_SIZE = 224
 BATCH_SIZE = 16
 CHANNELS = 3
-EPOCHS = 5
+EPOCHS = 1
 
 # Load data
 dataset = tf.keras.preprocessing.image_dataset_from_directory(
@@ -55,44 +55,44 @@ data_augmentation = tf.keras.Sequential([
 ])
 
 # Pre-trained model for feature extraction
-pretrained_model = VGG16(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, CHANNELS))
+#pretrained_model = VGG16(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, CHANNELS))
 
 # Define a new model with the pre-trained base
-model = models.Sequential()
-model.add(Conv2d(64, (3,3), activation="relu", padding="same", input_shape=(IMAGE_SIZE, IMAGE_SIZE, CHANNELS)))
-model.add(Conv2d(64, (3,3), activation="relu", padding="same"))
-model.add(MaxPooling2d((2,2)))
+model = models.Sequential() #sıralı bir model oluşturuyoruz, kutunun içini dolduracağız
+model.add(Conv2D(64, (3,3), activation="relu", padding="same", input_shape=(IMAGE_SIZE, IMAGE_SIZE, CHANNELS))) #conv2d katmanı ekliyoruz. içindeki 64 layer arasında geçiş yapılacak.
+model.add(Conv2D(64, (3,3), activation="relu", padding="same"))
+model.add(MaxPooling2D((2,2))) # gereksiz kısımları temizliyor
+model.add(Dropout(0.25)) # 2.conv2d nin 64 katmanının 4te birini iptal et.
+model.add(Conv2D(128, (3,3), activation="relu", padding="same"))
+model.add(Conv2D(128, (3,3), activation="relu", padding="same"))
+model.add(MaxPooling2D((2,2)))
 model.add(Dropout(0.25))
-model.add(Conv2d(128, (3,3), activation="relu", padding="same"))
-model.add(Conv2d(128, (3,3), activation="relu", padding="same"))
-model.add(MaxPooling2d((2,2)))
+model.add(Conv2D(256, (3,3), activation="relu", padding="same"))
+model.add(Conv2D(256, (3,3), activation="relu", padding="same"))
+model.add(Conv2D(256, (3,3), activation="relu", padding="same"))
+model.add(MaxPooling2D((2,2)))
 model.add(Dropout(0.25))
-model.add(Conv2d(256, (3,3), activation="relu", padding="same"))
-model.add(Conv2d(256, (3,3), activation="relu", padding="same"))
-model.add(Conv2d(256, (3,3), activation="relu", padding="same"))
-model.add(MaxPooling2d((2,2)))
+model.add(Conv2D(512, (3,3), activation="relu", padding="same"))
+model.add(Conv2D(512, (3,3), activation="relu", padding="same"))
+model.add(Conv2D(512, (3,3), activation="relu", padding="same"))
+model.add(MaxPooling2D((2,2)))
 model.add(Dropout(0.25))
-model.add(Conv2d(512, (3,3), activation="relu", padding="same"))
-model.add(Conv2d(512, (3,3), activation="relu", padding="same"))
-model.add(Conv2d(512, (3,3), activation="relu", padding="same"))
-model.add(MaxPooling2d((2,2)))
+model.add(Conv2D(512, (3,3), activation="relu", padding="same"))
+model.add(Conv2D(512, (3,3), activation="relu", padding="same"))
+model.add(Conv2D(512, (3,3), activation="relu", padding="same"))
+model.add(MaxPooling2D((2,2)))
 model.add(Dropout(0.25))
-model.add(Conv2d(512, (3,3), activation="relu", padding="same"))
-model.add(Conv2d(512, (3,3), activation="relu", padding="same"))
-model.add(Conv2d(512, (3,3), activation="relu", padding="same"))
-model.add(MaxPooling2d((2,2)))
-model.add(Dropout(0.25))
-model.add(Flatten())
+model.add(Flatten()) # 3 channeldan 1 channel a indirgiyoruz.
 model.add(Dense(4096,activation="relu"))
 model.add(Dropout(0.5))
 model.add(Dense(4096,activation="relu"))
 model.add(Dropout(0.5))
-model.add(Dense(1,activation="sigmoid"))
+model.add(Dense(1,activation="sigmoid")) # conv2d layerları tek bir dense layerına bağlanıyor ve sonucunda 1 veya 0 üretiliyor. (down send. veya değil)
 
 # Build the model specifying the input shape
-model.build((None, IMAGE_SIZE, IMAGE_SIZE, CHANNELS))
+model.build((None, IMAGE_SIZE, IMAGE_SIZE, CHANNELS)) #modeli oluşturuyoruz.
 
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001,beta_1=0.9,beta_2=0.999)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001,beta_1=0.9,beta_2=0.999) # adam en popüler optimizerlardan biri. içindeki değerler literatürde bu şekilde geçiyor.
 
 # Early Stopping
 early_stopping = tf.keras.callbacks.EarlyStopping(
@@ -102,7 +102,7 @@ early_stopping = tf.keras.callbacks.EarlyStopping(
 )
 
 # Compile the model
-model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy']) # loss kısmı 1 veya 0 olacağından dolayı binary-crossentropy
 
 # Train the model
 history = model.fit(
@@ -119,8 +119,8 @@ print("Test loss:", scores[0])
 print("Test accuracy:", scores[1])
 
 # Save the model
-model_version = max([int(i) for i in os.listdir("../models") + [0]]) + 1
-model.save(f"../models/preTrainedModel{necessaryScripts.getDateTime()}/no{model_version}")
+model_version = max([int(i) for i in os.listdir("../saved_models") + [0]]) + 1
+model.save(f"../saved_models/preTrainedModel{necessaryScripts.getDateTime()}/no{model_version}")
 
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
