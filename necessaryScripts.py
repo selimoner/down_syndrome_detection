@@ -1,9 +1,7 @@
 import os
 import cv2
 import numpy as np
-from PIL import Image
 import datetime
-from io import BytesIO
 from mtcnn.mtcnn import MTCNN
 
 folder_path = r"C:\Users\oners\OneDrive\Masaüstü\testing"
@@ -19,179 +17,40 @@ def rename_images(file_path):
             os.rename(old_file_path, new_file_path)
             counter += 1
 
-
-def find_face_resize(folder_path):
-    counter=1
-    for image_name in os.listdir(folder_path):
-        if image_name.endswith((".jpg", ".jpeg", ".png", ".PNG")):
-            image_path = os.path.join(folder_path,image_name)
-            image_path.decode('utf8')
-            #image_path = f"{str(folder_path)}\\{str(image_name)}"
-            image = cv2.imread(image_path)
-            print(image_path)
-            print(image)
-            if image is not None:
-                height, width, channels = image.shape
-
-                if height > 224 and width > 224:
-                    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-                    faces = face_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-
-                    for (x, y, w, h) in faces:
-                        # Adjust the cropping area to include the upper body
-                        y -= int(0.2 * h)
-                        h += int(0.3 * h)
-
-                        # Crop the face and upper body
-                        cropped_face = image[y:y + h, x:x + w]
-
-                        # Resize the cropped image to 224x224
-                        resized_cropped_face = cv2.resize(cropped_face, (224, 224))
-
-                        # Save or display the resulting cropped and resized image
-                        cv2.imwrite(f"cropped_face{counter}.jpg",
-                                    resized_cropped_face)  # Save the cropped image to a file
-                        cv2.imshow("Cropped Face", resized_cropped_face)  # Display the cropped image
-                        cv2.waitKey(0)  # Wait for a key press to close the display window
-                        cv2.destroyAllWindows()  # Close all OpenCV windows
-            else:
-                print("Can't find the image.")
-
-def findInputFaceAndResize(image_path):
-    if image_path.endswith((".jpg", ".jpeg", ".png", ".PNG")):
-        image = cv2.imread(image_path)
-        if image is not None:
-            height, width, channels = image.shape
-            if height > 224 and width > 224:
-                face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-                faces = face_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-                for (x, y, w, h) in faces:
-                    y -= int(0.2 * h)
-                    h += int(0.3 * h)
-                    cropped_face = image[y:y + h, x:x + w]
-                    resized_cropped_face = cv2.resize(cropped_face, (224, 224))
-                    print(resized_cropped_face.shape)
-                    return resized_cropped_face
-"""
-def loadImage(data):
-    image = cv2.cvtColor(np.array(data), cv2.COLOR_RGB2BGR)
-    height, width, channels = image.shape
-
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    faces = face_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-    if(len(faces)==0):
-        print("No faces found on the image.")
-        return cv2.resize(image,(224,224))
-    else:
-        if height > 224 and width > 224:
-            for (x, y, w, h) in faces:
-                y -= int(0.2 * h)
-                h += int(0.3 * h)
-                cropped_face = image[y:y + h, x:x + w]
-                resized_cropped_face = cv2.resize(cropped_face, (224, 224)
-                return resized_cropped_face
-    
-    if height > 224 and width > 224:
-        faces = face_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-        print(f"Faces found : {len(faces)}")
-        if len(faces) == 0:
-            return cv2.resize(image, (224,224))
-        for (x, y, w, h) in faces:
-            y -= int(0.2 * h)
-            h += int(0.3 * h)
-            cropped_face = image[y:y + h, x:x + w]
-            resized_cropped_face = cv2.resize(cropped_face, (224, 224))
-            print(resized_cropped_face.shape)
-            return resized_cropped_face
-    return cv2.resize(image, (224,224))
-"""
-
-
-def loadImage(data):
-    image = cv2.cvtColor(np.array(data), cv2.COLOR_RGB2BGR)
-
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    faces = face_cascade.detectMultiScale(image, scaleFactor=1.2, minNeighbors=5, minSize=(30, 30))
-
-    detected_faces = []
-
-    if len(faces) == 0:
-        print("No faces found on the image.")
-        resized_image = cv2.resize(image, (224, 224))
-        detected_faces.append(resized_image)
-        return detected_faces
-    else:
-        for (x, y, w, h) in faces:
-            y -= int(0.2 * h)
-            h += int(0.3 * h)
-            y = max(0, y)
-            h = max(1, h)
-            cropped_face = image[y:y + h, x:x + w]
-            resized_cropped_face = cv2.resize(cropped_face, (224, 224))
-            detected_faces.append(resized_cropped_face)
-
-        return detected_faces
-
-"""def mtcnnImage(data):
-    #image = cv2.cvtColor(np.array(data), cv2.COLOR_RGB2BGR)
-    # Convert the input data to a NumPy array
+def oneFaceDetection(data):
     image = np.array(data)
 
-    # Check if the image has 4 channels and convert to RGB if needed
     if image.shape[-1] == 4:
         image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
 
-    # Create an MTCNN face detector
     detector = MTCNN()
 
-    # Detect faces
     faces = detector.detect_faces(image)
 
     detected_faces = []
-    detected_faces2=[]
 
     for face in faces:
         x, y, w, h = face['box']
         confidence = face['confidence']
 
-        if confidence >= 0.5:  # Adjust confidence threshold as needed
-            # Add a margin to the bounding box to get a larger face area
-            margin = 0.3
-            x -= int(w * margin)
-            y -= int(h * margin)
-            w += int(2 * w * margin)
-            h += int(2 * h * margin)
-
-            # Ensure the modified bounding box is within the image boundaries
-            x, y = max(0, x), max(0, y)
-            w, h = min(image.shape[1] - 1, w), min(image.shape[0] - 1, h)
-            # Extract and resize the modified face area
+        if confidence >= 0.5:
             cropped_face = image[y:y + h, x:x + w]
             resized_cropped_face = cv2.resize(cropped_face, (256, 256))
             detected_faces.append(resized_cropped_face)
-
-
-
 
     if len(detected_faces) == 0:
-        detected_faces = loadImage(data)  # Assuming you have a function to load the image
+        detected_faces = cv2.resize(image, (256, 256))
 
     return detected_faces
-"""
-
 
 def mtcnnImage(data):
-    # Convert the input data to a NumPy array
     image = np.array(data)
 
-    # Check if the image has 4 channels and convert to RGB if needed
     if image.shape[-1] == 4:
         image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
 
-    # Create an MTCNN face detector
     detector = MTCNN()
 
-    # First pass: Detect faces
     faces = detector.detect_faces(image)
 
     detected_faces = []
@@ -200,37 +59,33 @@ def mtcnnImage(data):
         x, y, w, h = face['box']
         confidence = face['confidence']
 
-        if confidence >= 0.5:  # Adjust confidence threshold as needed
-            # Extract and resize the face area
+        if confidence >= 0.5:
             cropped_face = image[y:y + h, x:x + w]
             resized_cropped_face = cv2.resize(cropped_face, (256, 256))
             detected_faces.append(resized_cropped_face)
 
-    # Second pass: Detect faces on the already detected faces
     second_pass_detected_faces = []
 
     for face in detected_faces:
-        # Convert the face to RGB format if needed
         if face.shape[-1] == 4:
             face = cv2.cvtColor(face, cv2.COLOR_RGBA2RGB)
 
-        # Detect faces on the already detected face
         second_pass_faces = detector.detect_faces(face)
 
         for second_pass_face in second_pass_faces:
             x, y, w, h = second_pass_face['box']
             confidence = second_pass_face['confidence']
 
-            if confidence >= 0.5:  # Adjust confidence threshold as needed
-                # Extract and resize the face area
+            if confidence >= 0.5:
                 second_pass_cropped_face = face[y:y + h, x:x + w]
                 second_pass_resized_cropped_face = cv2.resize(second_pass_cropped_face, (256, 256))
                 second_pass_detected_faces.append(second_pass_resized_cropped_face)
 
     if len(second_pass_detected_faces) == 0:
-        second_pass_detected_faces = loadImage(data)  # Assuming you have a function to load the image
+        second_pass_detected_faces = oneFaceDetection(data)
 
     return second_pass_detected_faces
+
 def getDateTime():
     current_time = datetime.datetime.now()
     day = current_time.day
@@ -241,5 +96,58 @@ def getDateTime():
     model_name = f"{day}-{month}-{year}/{hour}-{minute}"
     return model_name
 
-#rename_images(folder_path)
-#find_face_resize(folder_path)
+def resize_images(input_folder, output_folder, target_size=(300, 300)):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    counter=0
+    count=0
+
+    for filename in os.listdir(input_folder):
+        if filename.endswith(('.jpg', '.jpeg', '.png')):
+            count+=1
+
+    print(f"Total number of images : {count}\n")
+
+    for filename in os.listdir(input_folder):
+        if filename.endswith(('.jpg', '.jpeg', '.png')):
+            input_path = os.path.join(input_folder, filename)
+            output_path = os.path.join(output_folder, filename)
+
+            img = cv2.imread(input_path)
+            if img.shape[-1] == 4:
+                img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+
+            detector = MTCNN()
+            faces = detector.detect_faces(img)
+
+            detected_faces = []
+
+            for face in faces:
+                x, y, w, h = face['box']
+                confidence = face['confidence']
+
+                if confidence >= 0.5:
+                    cropped_face = img[y:y + h, x:x + w]
+                    resized_cropped_face = cv2.resize(cropped_face, target_size[::-1])
+                    detected_faces.append(resized_cropped_face)
+
+            if len(detected_faces) == 1:
+                resized_img = cv2.resize(detected_faces[0], target_size[::-1])
+                print(f"\nChanged and Resized image : {filename}\n")
+            else:
+                resized_img = cv2.resize(img, target_size[::-1])
+                print(f"\nOnly Resized image : {filename}")
+            cv2.imwrite(output_path, resized_img)
+        count-=1
+        print(f"Images left : {count}\n")
+        counter+=1
+        print(f"Counter at : {counter}")
+        if counter==1500:
+            break
+
+if __name__ == "__main__":
+    input_folder = "D:\\bitirmeProjesi\\data\\normal"
+    output_folder = "D:\\bitirmeProjesi\\data\\normal2"
+    target_size = (256, 256)
+    resize_images(input_folder, output_folder, target_size)
